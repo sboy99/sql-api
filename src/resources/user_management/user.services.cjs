@@ -2,7 +2,7 @@ const User = require("./user.model.cjs");
 const Errors = require("../../utils/exceptions/index.cjs");
 
 const getAllUsers = async (req, res) => {
-  const users = await User.find({ username: "Sagar Bera" });
+  const users = await User.find();
   res.json({
     users,
   });
@@ -18,8 +18,11 @@ const getSingleUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
+  const { username } = req.body;
+  const { id } = req.params;
+  const user = await User.findOneAndUpdate({ id }, { username });
   res.json({
-    message: "Update User",
+    user,
   });
 };
 const deleteUser = async (req, res) => {

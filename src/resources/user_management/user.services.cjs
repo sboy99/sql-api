@@ -1,14 +1,19 @@
-const db = require("../../database/db.pool.cjs");
+const User = require("./user.model.cjs");
+const Errors = require("../../utils/exceptions/index.cjs");
 
 const getAllUsers = async (req, res) => {
-  const users = (await db.query("SELECT * FROM users")).rows;
+  const users = await User.find({ username: "Sagar Bera" });
   res.json({
     users,
   });
 };
+
 const getSingleUser = async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findOne({ id });
+  if (!user) throw new Errors.NotFound("user not found");
   res.json({
-    message: "Single User",
+    user,
   });
 };
 

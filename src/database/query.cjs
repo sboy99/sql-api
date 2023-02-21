@@ -1,5 +1,6 @@
 const db = require("./db.pool.cjs");
 const getConditionString = require("../utils/getConditionString.cjs");
+const Errors = require("../utils/exceptions/index.cjs");
 
 class Model {
   constructor(table) {
@@ -8,11 +9,14 @@ class Model {
 
   create = async (payload) => {
     const keys = Object.keys(payload).join(",");
-    const values = Object.values(payload).join(",");
-
-    const result = await db.query(
-      `INSERT INTO ${this.table} (${keys}) VALUES (${values}) RETURNING *`
-    );
+    const values = Object.values(payload)
+      .map((v) => {
+        if (typeof v === "string") return `'${v}'`;
+        return v;
+      })
+      .join(",");
+    const queryStr = `INSERT INTO ${this.table} (${keys}) VALUES (${values}) RETURNING *`;
+    const result = await db.query(queryStr);
     return result.rows[0];
   };
 
@@ -36,8 +40,22 @@ class Model {
       const conditionString = getConditionString(payload);
       queryStr = `SELECT * FROM ${this.table} WHERE ${conditionString} LIMIT 1`;
     }
-    console.log(queryStr);
+    const result = await db.query(queryStr);
+    return result.rows[0];
+  };
 
+  findOneAndUpdate = async (searchOptions, updatePayload) => {
+    if (!searchOptions || !Object.keys(searchOptions).length) {
+      throw new Errors.NotFound("user not found");
+    }
+    let queryStr = "";
+    const searchStr = getConditionString(searchOptions);
+    if (!updatePayload || !Object.keys(searchOptions).length) {
+      queryStr = `SELECT * FROM ${this.table} WHERE ${searchStr} LIMIT 1`;
+    } else {
+      const updateStr = getConditionString(updatePayload);
+      queryStr = `UPDATE ${this.table} SET ${updateStr} WHERE ${searchStr} RETURNING *`;
+    }
     const result = await db.query(queryStr);
     return result.rows[0];
   };

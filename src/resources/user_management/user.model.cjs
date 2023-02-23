@@ -1,4 +1,4 @@
-const Model = require("../../database/query.cjs");
+const createModel = require("../../database/query.cjs");
 
-const User = new Model("users");
+const User = new createModel("users");
 module.exports = User;

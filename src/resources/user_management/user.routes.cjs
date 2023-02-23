@@ -5,13 +5,15 @@ const {
   validateBody,
   validateParams,
 } = require("../../middlewares/validation.middleware.cjs");
+const authenticate = require("../../middlewares/authentication.middleware.cjs");
 
 router.route("/").get(userServices.getAllUsers);
 router
   .route("/:id")
-  .get(userServices.getSingleUser)
+  .get(validateParams(userValidation.userParams), userServices.getSingleUser)
   .patch(
     validateParams(userValidation.userParams),
+    authenticate,
     validateBody(userValidation.updateUser),
     userServices.updateUser
   )

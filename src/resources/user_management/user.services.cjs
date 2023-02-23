@@ -2,7 +2,7 @@ const User = require("./user.model.cjs");
 const Errors = require("../../utils/exceptions/index.cjs");
 
 const getAllUsers = async (req, res) => {
-  const users = await User.find();
+  const { data: users } = (await User.find({ isDeleted: false })).select();
   res.json({
     users,
   });
@@ -10,7 +10,9 @@ const getAllUsers = async (req, res) => {
 
 const getSingleUser = async (req, res) => {
   const { id } = req.params;
-  const user = await User.findOne({ id });
+  const { data: user } = (await User.findOne({ id })).select(
+    "-password -isDeleted"
+  );
   if (!user) throw new Errors.NotFound("user not found");
   res.json({
     user,
@@ -18,12 +20,15 @@ const getSingleUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { username } = req.body;
+  const { password, ...payload } = req.body;
   const { id } = req.params;
-  const user = await User.findOneAndUpdate({ id }, { username });
-  res.json({
-    user,
-  });
+  if (req.user.userId === id) {
+    const { data: user } = await User.findOneAndUpdate({ id }, payload);
+    return res.json({
+      user,
+    });
+  }
+  throw new Errors.Forbidden(`You don't have permission to do this action`);
 };
 const deleteUser = async (req, res) => {
   res.json({

@@ -4,10 +4,11 @@ const encryptPassword = require("../../utils/security/encryptPassword.cjs");
 const comparePassword = require("../../utils/security/comparePassword.cjs");
 const createUserPayload = require("../../utils/jwt/createUserPayload.cjs");
 const attachCookies = require("../../utils/jwt/attachCookies.cjs");
+const deleteCookies = require("../../utils/jwt/deleteCookies.cjs");
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
-  const isUserExistWithEmail = await User.findOne({ email });
+  const { data: isUserExistWithEmail } = await User.findOne({ email });
   if (isUserExistWithEmail)
     throw new Errors.BadRequest("another user exist with this email");
   const encryptedPassword = await encryptPassword(password);
@@ -16,13 +17,13 @@ const register = async (req, res) => {
     email,
     password: encryptedPassword,
   };
-  const user = await User.create(payload);
-  res.json(user);
+  const { data: user } = await User.create(payload);
+  res.status(201).json(user);
 };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const { data: user } = await User.findOne({ email });
   if (!user) throw new Errors.NotFound("user does not exist");
   const isMatch = await comparePassword(password, user.password);
   if (!isMatch) throw new Errors.BadRequest("invalid password");
@@ -32,7 +33,8 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  res.json({ message: "logout" });
+  deleteCookies(res, ...Object.keys(req.signedCookies));
+  res.json({ message: `${req.user.username} logged out` });
 };
 
 module.exports = {

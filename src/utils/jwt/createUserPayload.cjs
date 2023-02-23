@@ -1,7 +1,7 @@
 const createUserPayload = (user) => {
   return {
     userId: user.id,
-    userName: user.username,
+    username: user.username,
   };
 };
 

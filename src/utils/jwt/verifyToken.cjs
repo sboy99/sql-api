@@ -5,8 +5,7 @@ const verifyJwtToken = (token) => {
 
   return {
     userId: jwtPayload.userId,
-    userName: jwtPayload.userName,
-    refreshToken: jwtPayload.refreshToken,
+    username: jwtPayload.username,
   };
 };
 
